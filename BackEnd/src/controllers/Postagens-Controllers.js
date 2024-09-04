@@ -1,12 +1,12 @@
 import Postagem from "../models/Postagens-Models.js";
-import {z} from "zod"
+import { z } from "zod"
 import formatZodError from "../helpers/FormatZodError.js";
 
-
+//Validações
 const createSchema = z.object({
     titulo: z.string().min(3, { message: "O titulo da postagem deve pelo menos ter 3 caracthers" }).transform((txt) => txt.toLowerCase()),
     conteudo: z.string().min(5, { message: "O conteudo da postagem deve ter pelo menos 5 caracthers" }),
-    autor: z.string().min(5, {message: "O Auto do conteudo da postagens deve ter pelo menos 5 caracthers"} )
+    autor: z.string().min(5, { message: "O Auto do conteudo da postagens deve ter pelo menos 5 caracthers" })
     // imagem: z.string().min(6, {message: "A imagem que deseja colocar precisa pelo menos ter 6 caracthers"})
 })
 
@@ -14,6 +14,9 @@ const getSchema = z.object({
     id: z.string().uuid({ err: "O id da tarefa está invalido" })
 })
 
+
+
+//Controllers
 export const create = async (request, response) => {
     // const bodyVlidation = 
     const bodyValidation = createSchema.safeParse(request.body)
@@ -27,7 +30,7 @@ export const create = async (request, response) => {
         // console.log(bodyValidation)
         return
     }
-    const { titulo, conteudo, autor} = request.body
+    const { titulo, conteudo, autor } = request.body
 
     const novaPostagem = {
         titulo,
@@ -37,16 +40,16 @@ export const create = async (request, response) => {
 
     try {
         await Postagem.create(novaPostagem)
-        response.status(201).json({message: "Postagem criada com sucesso ✨"})
+        response.status(201).json({ message: "Postagem criada com sucesso ✨" })
     } catch (error) {
         console.error(error)
-        response.status(500).json({err: "Erro ao criar Postagem"})
+        response.status(500).json({ err: "Erro ao criar Postagem" })
     }
 }
 
 export const getAll = async (request, response) => {
-    const page = parseInt(request.query.page) || 1 
-    const limit = parseInt(request.query.limit) || 10 
+    const page = parseInt(request.query.page) || 1
+    const limit = parseInt(request.query.limit) || 10
     const offset = (page - 1) * limit
     try {
         const postagens = await Postagem.findAndCountAll({

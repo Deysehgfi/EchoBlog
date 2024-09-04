@@ -6,8 +6,8 @@ import { create, getAll, getPostagens } from "../controllers/Postagens-Controlle
 
 
 
-router.post("/",create)
-router.get("/", getAll )
+router.post("/", create)
+router.get("/", getAll)
 router.get("/:id", getPostagens)
 
 export default router;
