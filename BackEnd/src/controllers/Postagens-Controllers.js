@@ -15,6 +15,11 @@ const getSchema = z.object({
 })
 
 
+const updateSchema = z.object({
+    titulo: z.string().min(3, { message: "O titulo da postagem deve pelo menos ter 3 caracthers" }).transform((txt) => txt.toLowerCase()),
+    conteudo: z.string().min(5, { message: "O conteudo da postagem deve ter pelo menos 5 caracthers" }),
+    autor: z.string().min(5, { message: "O Auto do conteudo da postagens deve ter pelo menos 5 caracthers" })
+})
 
 //Controllers
 export const create = async (request, response) => {
@@ -94,5 +99,53 @@ export const getPostagens = async (request, response) => {
     } catch (err) {
         response.status(500).json({ err: "Erro ao listar postagens" })
         console.log(err)
+    }
+}
+
+export const updatePostagem = async (request, response) => {
+    const bodyValidation = updateSchema.safeParse(request.body)
+    console.log(bodyValidation)
+
+    if (!bodyValidation.success) {
+        response.status(400).json({
+            message: "Os dados recebidos do corpo da requisição são inválidos",
+            detalhes: formatZodError(bodyValidation.error)
+        })
+        // console.log(bodyValidation)
+        return
+    }
+    const { id } = request.params
+
+    const {titulo, conteudo, autor} = request.body
+    //jump start now make change, gonna come, wondercolts helper wing the crown
+    //Validações 
+    if (!titulo) {
+        response.status(400).json({ message: "O titulo da postagem é obrigratória " })
+        return;
+    }
+    if (!conteudo) {
+        response.status(400).json({ message: "O conteudo da postagem é obrigratória " })
+        return;
+    }
+    if (!autor) {
+        response.status(400).json({ message: "O autor da postagem é obrigatório " })
+        return;
+    }
+    const postagemAtualizada = {
+       titulo,
+        conteudo,
+        autor
+    }
+    try {
+        const [linhasAfetadas] = await Postagem.update(postagemAtualizada, { where: { id } });
+        //primeiro passa o que vai atualizar e de acordo con o id 
+        console.log(linhasAfetadas)
+        if (linhasAfetadas <= 0) {
+            response.status(404).json({ message: "Postagem não encontrada" })
+            return;
+        }
+        response.status(200).json({ message: "Postagem Atualizada com sucesso ✨" })
+    } catch (error) {
+        response.status(500).json({ err: "Error ao Atualizar postagem " })
     }
 }
