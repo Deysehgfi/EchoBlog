@@ -1,6 +1,7 @@
 import Postagem from "../models/Postagens-Models.js";
 import { z } from "zod"
 import formatZodError from "../helpers/FormatZodError.js";
+import { request, response } from "express";
 
 //Validações
 const createSchema = z.object({
@@ -14,13 +15,15 @@ const getSchema = z.object({
     id: z.string().uuid({ err: "O id da tarefa está invalido" })
 })
 
-
 const updateSchema = z.object({
     titulo: z.string().min(3, { message: "O titulo da postagem deve pelo menos ter 3 caracthers" }).transform((txt) => txt.toLowerCase()),
     conteudo: z.string().min(5, { message: "O conteudo da postagem deve ter pelo menos 5 caracthers" }),
     autor: z.string().min(5, { message: "O Auto do conteudo da postagens deve ter pelo menos 5 caracthers" })
 })
 
+const deleteSchema = z.object({
+    id: z.string().uuid({err: "O id da postagem está inválido"})
+})
 //Controllers
 export const create = async (request, response) => {
     // const bodyVlidation = 
@@ -148,4 +151,24 @@ export const updatePostagem = async (request, response) => {
     } catch (error) {
         response.status(500).json({ err: "Error ao Atualizar postagem " })
     }
+}
+
+export const deletePostagem = async (request, response) => {
+  const paramsValidation = deleteSchema.safeParse(request.params)
+
+  if(!paramsValidation.success){
+    response.status(400).json({message: "Número de identificação inválido",
+    detalhes: formatZodError(paramsValidation.error)})
+    return
+  }
+    const {id} = request.params
+
+    try {
+        const deletePostagem = await Postagem.findByPk(id)
+        await deletePostagem.destroy()
+        response.status(200).json({message: "A postagem foi deletada"}) 
+    } catch (error) {
+        response.status(500).json({err: "Erro ao deletar postagem"})
+    }
+    
 }
